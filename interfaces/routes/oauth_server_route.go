@@ -8,6 +8,7 @@ import (
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
 	"github.com/go-session/session"
+	"gitlab.com/nurmanhabib/go-oauth2/interfaces/middleware"
 	"golang.org/x/oauth2"
 	"html/template"
 	"log"
@@ -25,7 +26,7 @@ var (
 		ClientID:     "000000",
 		ClientSecret: "999999",
 		Scopes:       []string{"all"},
-		RedirectURL:  authServerURL + "/oauth/callback",
+		RedirectURL:  "https://oauth.pstmn.io/v1/callback",
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  authServerURL + "/oauth/authorize",
 			TokenURL: authServerURL + "/oauth/token",
@@ -33,7 +34,7 @@ var (
 	}
 )
 
-func oauthServerRoute(e *gin.Engine) {
+func oauthServerRoute(e *gin.Engine, aw *middleware.AuthWeb) {
 	manager := manage.NewDefaultManager()
 	// token memory store
 	manager.MustTokenStorage(store.NewMemoryTokenStore())
@@ -43,7 +44,7 @@ func oauthServerRoute(e *gin.Engine) {
 	_ = clientStore.Set("000000", &models.Client{
 		ID:     "000000",
 		Secret: "999999",
-		Domain: authServerURL + "/oauth/callback",
+		Domain: "https://oauth.pstmn.io",
 	})
 	manager.MapClientStorage(clientStore)
 
@@ -59,7 +60,7 @@ func oauthServerRoute(e *gin.Engine) {
 		log.Println("Response Error:", re.Description)
 	})
 
-	o := e.Group("oauth")
+	o := e.Group("oauth", aw.Authenticate())
 	o.GET("/", defaultHandler)
 	o.GET("/authorize", func(c *gin.Context) {
 		authorizeFormHandler(c, srv)
@@ -112,8 +113,6 @@ func authorizeFormHandler(c *gin.Context, srv *server.Server) {
 		"name": "Example App",
 		"query": template.URL(c.Request.URL.RawQuery),
 	}
-
-	log.Print(c.Request.URL.RawQuery)
 
 	err = tmpl.Execute(c.Writer, data)
 

@@ -3,7 +3,9 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-session/session"
+	"html/template"
 	"net/http"
+	"path"
 )
 
 func loginRoute(e *gin.Engine) {
@@ -12,8 +14,18 @@ func loginRoute(e *gin.Engine) {
 }
 
 func loginFormHandler(c *gin.Context) {
-	c.Header("Content-Type", "text/html; charset: utf-8")
-	c.HTML(http.StatusOK, "oauth_login.html", gin.H{})
+	tmpl, err := template.ParseFiles(path.Join("interfaces", "handler", "oauth_login.html"))
+
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = tmpl.Execute(c.Writer, gin.H{})
+
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func loginHandler(c *gin.Context) {
@@ -25,12 +37,21 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
-	sessionStore.Set("LoggedInUserID", "12345")
+	sessionStore.Set("login_user_id", 123)
 	errStore := sessionStore.Save()
 	if errStore != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, errStore)
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/oauth/authorize")
+	redirectUri := "/oauth/authorize"
+	intendedUri, ok := sessionStore.Get("intended_uri")
+
+	if ok {
+		redirectUri = intendedUri.(string)
+		sessionStore.Delete("intended_uri")
+		_ = sessionStore.Save()
+	}
+
+	c.Redirect(http.StatusFound, redirectUri)
 }
