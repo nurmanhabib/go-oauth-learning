@@ -25,7 +25,7 @@ var (
 	defaultOauthConfig = oauth2.Config{
 		ClientID:     "000000",
 		ClientSecret: "999999",
-		Scopes:       []string{"all"},
+		Scopes:       []string{"view-email", "view-phone", "view-public-profile"},
 		RedirectURL:  "https://oauth.pstmn.io/v1/callback",
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  authServerURL + "/oauth/authorize",
@@ -50,6 +50,7 @@ func oauthServerRoute(e *gin.Engine, aw *middleware.AuthWeb) {
 
 	srv := server.NewDefaultServer(manager)
 	srv.SetUserAuthorizationHandler(userAuthorizeHandler)
+	srv.SetClientInfoHandler(server.ClientFormHandler)
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		log.Println("Internal Error:", err.Error())
@@ -109,8 +110,8 @@ func authorizeFormHandler(c *gin.Context, srv *server.Server) {
 		return
 	}
 
-	data := map[string]interface{} {
-		"name": "Example App",
+	data := map[string]interface{}{
+		"name":  "Example App",
 		"query": template.URL(c.Request.URL.RawQuery),
 	}
 
