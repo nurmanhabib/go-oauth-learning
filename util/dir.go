@@ -7,9 +7,8 @@ import (
 
 // RootDir returns relative path of current project.
 func RootDir() string {
-	_, b, _, ok := runtime.Caller(0)
-	if ok {
-		return filepath.Join(filepath.Dir(b), "../..")
+	if _, b, _, ok := runtime.Caller(0); ok {
+		return filepath.Join(filepath.Dir(b), "..")
 	}
 
 	return ""
