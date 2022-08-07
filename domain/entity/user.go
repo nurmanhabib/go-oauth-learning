@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -8,7 +9,7 @@ import (
 
 // User is a user entity container.
 type User struct {
-	ID        string
+	ID        int
 	Name      string
 	PrivyID   string
 	Password  string
@@ -20,10 +21,10 @@ type User struct {
 // GetAuthIdentifier is a function to take as auth identifier.
 func (u *User) GetAuthIdentifier() string {
 	if u == nil {
-		return ""
+		return "0"
 	}
 
-	return u.ID
+	return strconv.Itoa(u.ID)
 }
 
 // GetAuthPassword is a function to take as auth password.

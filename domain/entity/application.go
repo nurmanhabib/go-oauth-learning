@@ -2,8 +2,6 @@ package entity
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // ApplicationVersion is a type to define the version of the application.
@@ -17,13 +15,19 @@ const (
 
 // Application is an application entity container.
 type Application struct {
-	ID          string
-	Name        string
-	Version     ApplicationVersion
-	Credentials Credentials
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   gorm.DeletedAt
+	ID            int
+	Name          string
+	ClientID      string             `gorm:"column:uid"`
+	ClientSecret  string             `gorm:"column:secret"`
+	Version       ApplicationVersion `gorm:"-"`
+	SuperApp      bool               `gorm:"column:super_app"`
+	RedirectURI   string             `gorm:"column:redirect_uri"`
+	Scopes        string
+	Confidential  bool
+	SingleSession bool
+	Status        bool
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 // IsV1 is a function to ensure the application version 1.
